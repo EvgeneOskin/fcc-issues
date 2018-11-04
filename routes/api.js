@@ -10,7 +10,7 @@
 
 const expect = require('chai').expect;
 const MongoClient = require('mongodb');
-const ObjectId = require('mongodb').ObjectID;
+const ObjectID = require('mongodb').ObjectID;
 
 const CONNECTION_STRING = process.env.DB;
 
@@ -44,15 +44,28 @@ module.exports = function (app) {
           .send('fail');
         return
       }
-      const data = { issue_title, issue_text, created_by, assigned_to, status_text }
-      db.collection('users').insertOne(
+      const data = { 
+        created_on: new Date(),
+        issue_title, issue_text, created_by, assigned_to, status_text 
+      }
+      db.collection('issues').insertOne(
         data, (err, issue) => {
           if (err) {
             res.status(400)
               .type('text')
               .send('fail');
           } else {
-            res.json(issue)
+            const { insertedId: _id } = issue
+            db.collection('issues').findOne({ _id: new ObjectID(_id) }, (err, obj) => {
+              if (err) {
+                res.status(400)
+                  .type('text')
+                  .send('fail');
+              } else {
+                console.log(obj)
+                res.json(obj)
+              }
+             })
           }
         }
       )
