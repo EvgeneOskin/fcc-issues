@@ -42,7 +42,7 @@ module.exports = function (app) {
       if (![issue_title, issue_text, created_by].every(i => i)) {
         res.status(400)
           .type('text')
-          .send('fail');
+          .send('missing inputs');
         return
       }
       const data = { 

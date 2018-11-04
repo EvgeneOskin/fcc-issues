@@ -32,28 +32,67 @@ suite('Functional Tests', function() {
           assert.equal(res.status, 200);
           const fields = ['_id','issue_title','issue_text','created_by','assigned_to','created_on','updated_on','open','status_text']
           const { body: data } = res
-        assert.isDefined(data);
-        window.ISQA_4_fields.forEach(function(ele){
-          assert.property(data, ele);
-        });
-        assert.equal(data.issue_title, payload.issue_title);
-        assert.equal(data.issue_text, payload.issue_texttestInfo[1]);
-        assert.equal(data.created_by, testInfo[2]);
-        assert.equal(data.assigned_to, '');
-        assert.equal(data.status_text, '');
-        assert.isBoolean(data.open);
-        assert.equal(data.open, true);
+          assert.isDefined(data);
+          window.ISQA_4_fields.forEach(function(ele){
+            assert.property(data, ele);
+          });
+          assert.equal(data.issue_title, payload.issue_title);
+          assert.equal(data.issue_text, payload.issue_text);
+          assert.equal(data.created_by, payload.created_by);
+          assert.equal(data.assigned_to, payload.assigned_to);
+          assert.equal(data.status_text, payload.status_text);
+          assert.isBoolean(data.open);
+          assert.equal(data.open, true);
           
           done();
         });
       });
       
       test('Required fields filled in', function(done) {
-        
+        const payload = {
+          issue_title: 'Title',
+          issue_text: 'text',
+          created_by: 'Functional Test - Every field filled in',
+        }
+       chai.request(server)
+        .post('/api/issues/test')
+        .send(payload)
+        .end(function(err, res){
+          assert.equal(res.status, 400);
+          const { text: data } = res
+          assert.isDefined(data);
+          assert.equal(data, 'missing inputs')
+          
+          done();
+        }); 
       });
       
       test('Missing required fields', function(done) {
-        
+        const payload = {
+          issue_text: 'text',
+          created_by: 'Functional Test - Every field filled in',
+        }
+       chai.request(server)
+        .post('/api/issues/test')
+        .send(payload)
+        .end(function(err, res){
+          assert.equal(res.status, 200);
+          const fields = ['_id','issue_title','issue_text','created_by','assigned_to','created_on','updated_on','open','status_text']
+          const { body: data } = res
+          assert.isDefined(data);
+          window.ISQA_4_fields.forEach(function(ele){
+            assert.property(data, ele);
+          });
+          assert.equal(data.issue_title, payload.issue_title);
+          assert.equal(data.issue_text, payload.issue_text);
+          assert.equal(data.created_by, payload.created_by);
+          assert.equal(data.assigned_to, '');
+          assert.equal(data.status_text, '');
+          assert.isBoolean(data.open);
+          assert.equal(data.open, true);
+          
+          done();
+        }); 
       });
       
     });
