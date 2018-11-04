@@ -40,13 +40,14 @@ module.exports = function (app) {
         assigned_to = '', status_text = '',
       } = req.body;
       if (![issue_title, issue_text, created_by].every(i => i)) {
-        res.status(400)
+        res
           .type('text')
           .send('missing inputs');
         return
       }
       const data = { 
         created_on: new Date(),
+        updated_on: new Date(),
         issue_title, issue_text, created_by, assigned_to, status_text,
         open: true,
       }
