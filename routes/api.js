@@ -36,7 +36,8 @@ module.exports = function (app) {
 
       const { project } = req.params;
       const { 
-        issue_title, issue_text, created_by, assigned_to, status_text
+        issue_title, issue_text, created_by, 
+        assigned_to = '', status_text = '',
       } = req.body;
       if (![issue_title, issue_text, created_by].every(i => i)) {
         res.status(400)
@@ -46,7 +47,8 @@ module.exports = function (app) {
       }
       const data = { 
         created_on: new Date(),
-        issue_title, issue_text, created_by, assigned_to, status_text 
+        issue_title, issue_text, created_by, assigned_to, status_text,
+        open: true,
       }
       db.collection('issues').insertOne(
         data, (err, issue) => {
@@ -62,7 +64,6 @@ module.exports = function (app) {
                   .type('text')
                   .send('fail');
               } else {
-                console.log(obj)
                 res.json(obj)
               }
              })

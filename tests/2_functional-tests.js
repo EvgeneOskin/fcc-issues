@@ -18,19 +18,31 @@ suite('Functional Tests', function() {
     suite('POST /api/issues/{project} => object with issue data', function() {
       
       test('Every field filled in', function(done) {
-       chai.request(server)
-        .post('/api/issues/test')
-        .send({
+       const payload = {
           issue_title: 'Title',
           issue_text: 'text',
           created_by: 'Functional Test - Every field filled in',
           assigned_to: 'Chai and Mocha',
           status_text: 'In QA'
-        })
+        }
+       chai.request(server)
+        .post('/api/issues/test')
+        .send(payload)
         .end(function(err, res){
           assert.equal(res.status, 200);
-          
-          //fill me in too!
+          const fields = ['_id','issue_title','issue_text','created_by','assigned_to','created_on','updated_on','open','status_text']
+          const { body: data } = res
+        assert.isDefined(data);
+        window.ISQA_4_fields.forEach(function(ele){
+          assert.property(data, ele);
+        });
+        assert.equal(data.issue_title, payload.issue_title);
+        assert.equal(data.issue_text, payload.issue_texttestInfo[1]);
+        assert.equal(data.created_by, testInfo[2]);
+        assert.equal(data.assigned_to, '');
+        assert.equal(data.status_text, '');
+        assert.isBoolean(data.open);
+        assert.equal(data.open, true);
           
           done();
         });
