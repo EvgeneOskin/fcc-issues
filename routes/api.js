@@ -8,14 +8,17 @@
 
 'use strict';
 
-var expect = require('chai').expect;
-var MongoClient = require('mongodb');
-var ObjectId = require('mongodb').ObjectID;
+const expect = require('chai').expect;
+const helmet = require('helmet')
+const MongoClient = require('mongodb');
+const ObjectId = require('mongodb').ObjectID;
 
-const CONNECTION_STRING = process.env.DB; //MongoClient.connect(CONNECTION_STRING, function(err, db) {});
+const CONNECTION_STRING = process.env.DB;
 
 module.exports = function (app) {
-
+ MongoClient.connect(CONNECTION_STRING, function(err, db) {
+  app.use(helmet())
+  
   app.route('/api/issues/:project')
   
     .get(function (req, res){
@@ -37,5 +40,5 @@ module.exports = function (app) {
       var project = req.params.project;
       
     });
-    
+  });
 };
