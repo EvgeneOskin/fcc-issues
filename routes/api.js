@@ -26,13 +26,18 @@ module.exports = function (app) {
 
   app.route('/api/issues/:project')
     .get(function (req, res){
-      var project = req.params.project;
-
-
+      const {project} = req.params;
+      db.collection('issues').find({ project }, (err, obj) => {
+        if (err) {
+          res.status(400)
+            .type('text')
+            .send('fail');
+        } else {
+          res.json(obj)
+        }
+       })
     })
-
     .post((req, res) => {
-      console.log(req.body)
 
       const { project } = req.params;
       const { 
@@ -50,6 +55,7 @@ module.exports = function (app) {
         updated_on: new Date(),
         issue_title, issue_text, created_by, assigned_to, status_text,
         open: true,
+        project,
       }
       db.collection('issues').insertOne(
         data, (err, issue) => {
