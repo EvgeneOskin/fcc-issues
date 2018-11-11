@@ -29,11 +29,11 @@ module.exports = function (app) {
       const {project} = req.params;
       const filters = { ...req.query }
       if (filters._id) {
-        filters._id = ObjectID(_id)
+        filters._id = new ObjectID(filters._id)
+      }
       try {
-        const cursor = await db.collection('issues').find({ project })
+        const cursor = await db.collection('issues').find({ project, ...filters })
         const data = await cursor.toArray()
-        console.log(data)
         res.json(data)
       } catch(err) {
         res.status(400)
@@ -75,18 +75,19 @@ module.exports = function (app) {
 
     .put(async (req, res) => {
       const { project } = req.params;
-      const { _id, ...data } = req.body;
+      const { _id, ...data } = fixPayload(req.body);
       if (!_id) {
         res
           .type('text')
           .send('missing inputs');
         return
       }
+      console.log(data)
       data.updated_on = new Date()
       try {
         await db.collection('issues').findOneAndUpdate(
           { 
-            _id: ObjectID(_id) 
+            _id: new ObjectID(_id) 
           },
           { $set: data },
         )
@@ -106,3 +107,15 @@ module.exports = function (app) {
 
     });
 };
+
+
+const fixPayload = data => {
+  if (data.open === 'true') {
+    data.open = true
+  } else if (data.open === 'false') {
+    data.open = false
+  } else {
+    delete data.open
+  }
+  return data
+}
