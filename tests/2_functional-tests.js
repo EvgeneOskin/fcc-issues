@@ -15,6 +15,7 @@ chai.use(chaiHttp);
 
 suite('Functional Tests', function() {
     let id = null
+    const fields = ['_id','issue_title','issue_text','created_by','assigned_to','created_on','updated_on','open','status_text']
     
     suite('POST /api/issues/{project} => object with issue data', function() {
       
@@ -31,10 +32,9 @@ suite('Functional Tests', function() {
         .send(payload)
         .end(function(err, res){
           assert.equal(res.status, 200);
-          const fields = ['_id','issue_title','issue_text','created_by','assigned_to','created_on','updated_on','open','status_text']
           const { body: data } = res
           assert.isDefined(data);
-          window.ISQA_4_fields.forEach(function(ele){
+          fields.forEach(function(ele){
             assert.property(data, ele);
           });
           assert.equal(data.issue_title, payload.issue_title);
@@ -44,6 +44,7 @@ suite('Functional Tests', function() {
           assert.equal(data.status_text, payload.status_text);
           assert.isBoolean(data.open);
           assert.equal(data.open, true);
+         
           id = data._id
           done();
         });
@@ -59,11 +60,20 @@ suite('Functional Tests', function() {
         .post('/api/issues/test')
         .send(payload)
         .end(function(err, res){
-          assert.equal(res.status, 400);
-          const { text: data } = res
+          assert.equal(res.status, 200);
+          const { body: data } = res
           assert.isDefined(data);
-          assert.equal(data, 'missing inputs')
-          
+          fields.forEach(function(ele){
+            assert.property(data, ele);
+          });
+          assert.equal(data.issue_title, payload.issue_title);
+          assert.equal(data.issue_text, payload.issue_text);
+          assert.equal(data.created_by, payload.created_by);
+          assert.equal(data.assigned_to, '');
+          assert.equal(data.status_text, '');
+          assert.isBoolean(data.open);
+          assert.equal(data.open, true);
+         
           done();
         }); 
       });
@@ -78,19 +88,7 @@ suite('Functional Tests', function() {
         .send(payload)
         .end(function(err, res){
           assert.equal(res.status, 200);
-          const fields = ['_id','issue_title','issue_text','created_by','assigned_to','created_on','updated_on','open','status_text']
-          const { body: data } = res
-          assert.isDefined(data);
-          window.ISQA_4_fields.forEach(function(ele){
-            assert.property(data, ele);
-          });
-          assert.equal(data.issue_title, payload.issue_title);
-          assert.equal(data.issue_text, payload.issue_text);
-          assert.equal(data.created_by, payload.created_by);
-          assert.equal(data.assigned_to, '');
-          assert.equal(data.status_text, '');
-          assert.isBoolean(data.open);
-          assert.equal(data.open, true);
+          assert.equal(res.text, 'missing inputs')
           
           done();
         }); 
@@ -105,10 +103,9 @@ suite('Functional Tests', function() {
         .put('/api/issues/test')
         .send({})
         .end(function(err, res){
-          assert.equal(res.status, 400);
-          const { body: data } = res
-          assert.isDefined(data);
-          assert.equal(data, 'fail');
+          assert.equal(res.status, 200);
+          assert.isDefined(res.text);
+          assert.equal(res.text, 'missing inputs');
           done();
         }); 
       });
@@ -119,7 +116,7 @@ suite('Functional Tests', function() {
         .send({ _id: id, issue_text: 'ping' })
         .end(function(err, res){
           assert.equal(res.status, 200);
-          const { body: data } = res
+          const { text: data } = res
           assert.isDefined(data);
           assert.equal(data, 'successfully updated');
           done();
@@ -132,7 +129,7 @@ suite('Functional Tests', function() {
         .send({ _id: id, issue_text: 'ping', issue_title: 'super issue' })
         .end(function(err, res){
           assert.equal(res.status, 200);
-          const { body: data } = res
+          const { text: data } = res
           assert.isDefined(data);
           assert.equal(data, 'successfully updated');
           done();
@@ -171,7 +168,7 @@ suite('Functional Tests', function() {
         .end(function(err, res){
           assert.equal(res.status, 200);
           assert.isArray(res.body);
-          assert.length(res.body, 1);
+          assert.equal(res.body.length, 1);
           assert.property(res.body[0], 'issue_title');
           assert.property(res.body[0], 'issue_text');
           assert.property(res.body[0], 'created_on');
@@ -192,7 +189,7 @@ suite('Functional Tests', function() {
         .end(function(err, res){
           assert.equal(res.status, 200);
           assert.isArray(res.body);
-          assert.length(res.body, 0);
+          assert.equal(res.body.length, 0);
           done();
         });
       });
@@ -202,18 +199,27 @@ suite('Functional Tests', function() {
       
       test('No _id', function(done) {
         chai.request(server)
-        .get('/api/issues/test')
-        .query({})
+        .delete('/api/issues/test')
+        .send({})
         .end(function(err, res){
-          assert.equal(res.status, 400);
-          assert.isDefined(res.body);
-          assert.equal(res.body, 'fail');
+          assert.equal(res.status, 200);
+          assert.isDefined(res.text);
+          assert.equal(res.text, 'missing inputs');
           done();
         });
       });
       
       test('Valid _id', function(done) {
+        chai.request(server)
+        .delete('/api/issues/test')
+        .send({ _id: id })
+        .end(function(err, res){
+          assert.equal(res.status, 200);
+          assert.isDefined(res.text);
+          assert.equal(res.text, `deleted ${id}`);
           done();
+        });
+
       });
       
     });

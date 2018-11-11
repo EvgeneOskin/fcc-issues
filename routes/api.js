@@ -82,7 +82,6 @@ module.exports = function (app) {
           .send('missing inputs');
         return
       }
-      console.log(data)
       data.updated_on = new Date()
       try {
         await db.collection('issues').findOneAndUpdate(
