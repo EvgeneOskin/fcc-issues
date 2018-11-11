@@ -25,19 +25,20 @@ module.exports = function (app) {
   })
 
   app.route('/api/issues/:project')
-    .get(function (req, res){
+    .get(async (req, res)=>{
       const {project} = req.params;
-      db.collection('issues').find({ project }, (err, obj) => {
-        if (err) {
-          res.status(400)
-            .type('text')
-            .send('fail');
-        } else {
-          res.json(obj)
-        }
-       })
+      try {
+        const cursor = await db.collection('issues').find({ project })
+        const data = await cursor.toArray()
+        console.log(data)
+        res.json(data)
+      } catch(err) {
+        res.status(400)
+          .type('text')
+          .send('fail');
+      } 
     })
-    .post((req, res) => {
+    .post(async (req, res) => {
 
       const { project } = req.params;
       const { 
@@ -57,31 +58,43 @@ module.exports = function (app) {
         open: true,
         project,
       }
-      db.collection('issues').insertOne(
-        data, (err, issue) => {
-          if (err) {
-            res.status(400)
-              .type('text')
-              .send('fail');
-          } else {
-            const { insertedId: _id } = issue
-            db.collection('issues').findOne({ _id: new ObjectID(_id) }, (err, obj) => {
-              if (err) {
-                res.status(400)
-                  .type('text')
-                  .send('fail');
-              } else {
-                res.json(obj)
-              }
-             })
-          }
-        }
-      )
+      try {
+        const issue = await db.collection('issues').insertOne(data)
+        const { insertedId: _id } = issue
+        const obj = await db.collection('issues').findOne({ _id: new ObjectID(_id) })
+        res.json(obj)
+      } catch (err) {
+        res.status(400)
+          .type('text')
+          .send('fail');
+      }
     })
 
-    .put(function (req, res){
-      var project = req.params.project;
-
+    .put(async (req, res) => {
+      const { project } = req.params;
+      const { _id, ...data } = req.body;
+      if (!_id) {
+        res
+          .type('text')
+          .send('missing inputs');
+        return
+      }
+      data.updated_on = new Date()
+      try {
+        const issue = await db.collection('issues').findAndUpdate(
+          { 
+            _id: ObjectId(_id), project 
+          },
+          data,
+          { returnNewDocument: true }
+        )
+        console.log(issue)
+        res.json(issue)
+      } catch (err) {
+        res.status(400)
+          .type('text')
+          .send('fail');
+      }
     })
 
     .delete(function (req, res){
