@@ -17,6 +17,7 @@ suite('Functional Tests', function() {
     let id = null
     const fields = ['_id','issue_title','issue_text','created_by','assigned_to','created_on','updated_on','open','status_text']
     
+    
     suite('POST /api/issues/{project} => object with issue data', function() {
       
       test('Every field filled in', function(done) {
@@ -34,10 +35,18 @@ suite('Functional Tests', function() {
           assert.equal(res.status, 200);
           const { body: data } = res
           assert.isDefined(data);
-          fields.forEach(function(ele){
-            assert.property(data, ele);
-          });
-          assert.equal(data.issue_title, payload.issue_title);
+         
+          assert.property(res.body, 'issue_title');
+          assert.property(res.body, 'issue_text');
+          assert.property(res.body, 'created_on');
+          assert.property(res.body, 'updated_on');
+          assert.property(res.body, 'created_by');
+          assert.property(res.body, 'assigned_to');
+          assert.property(res.body, 'open');
+          assert.property(res.body, 'status_text');
+          assert.property(res.body, '_id');
+
+         assert.equal(data.issue_title, payload.issue_title);
           assert.equal(data.issue_text, payload.issue_text);
           assert.equal(data.created_by, payload.created_by);
           assert.equal(data.assigned_to, payload.assigned_to);
@@ -185,11 +194,20 @@ suite('Functional Tests', function() {
       test('Multiple filters (test for multiple fields you know will be in the db for a return)', function(done) {
         chai.request(server)
         .get('/api/issues/test')
-        .query({_id: id, open: false})
+        .query({_id: id, open: true})
         .end(function(err, res){
           assert.equal(res.status, 200);
           assert.isArray(res.body);
-          assert.equal(res.body.length, 0);
+          assert.equal(res.body.length, 1);
+          assert.property(res.body[0], 'issue_title');
+          assert.property(res.body[0], 'issue_text');
+          assert.property(res.body[0], 'created_on');
+          assert.property(res.body[0], 'updated_on');
+          assert.property(res.body[0], 'created_by');
+          assert.property(res.body[0], 'assigned_to');
+          assert.property(res.body[0], 'open');
+          assert.property(res.body[0], 'status_text');
+          assert.property(res.body[0], '_id');
           done();
         });
       });
