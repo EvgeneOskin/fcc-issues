@@ -27,7 +27,7 @@ module.exports = function (app) {
   app.route('/api/issues/:project')
     .get(async (req, res)=>{
       const {project} = req.params;
-      const filters = { ...req.query }
+      const filters = fixPayload({ ...req.query })
       if (filters._id) {
         filters._id = new ObjectID(filters._id)
       }
@@ -95,16 +95,35 @@ module.exports = function (app) {
           .type('text')
           .send('successfully updated')
       } catch (err) {
-        console.log(err)
         res.status(400)
           .type('text')
           .send('fail');
       }
     })
 
-    .delete(function (req, res){
-      var project = req.params.project;
-
+    .delete(async (req, res) => {
+      const { project } = req.params;
+      const { _id } = req.body;
+      if (!_id) {
+        res
+          .type('text')
+          .send('missing inputs');
+        return
+      }
+      try {
+        await db.collection('issues').deleteOne(
+          { 
+            _id: new ObjectID(_id) 
+          },
+        )
+        res
+          .type('text')
+          .send(`deleted ${_id}`)
+      } catch (err) {
+        res.status(400)
+          .type('text')
+          .send('fail');
+      }
     });
 };
 
