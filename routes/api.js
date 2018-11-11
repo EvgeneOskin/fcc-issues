@@ -27,6 +27,9 @@ module.exports = function (app) {
   app.route('/api/issues/:project')
     .get(async (req, res)=>{
       const {project} = req.params;
+      const filters = { ...req.query }
+      if (filters._id) {
+        filters._id = ObjectID(_id)
       try {
         const cursor = await db.collection('issues').find({ project })
         const data = await cursor.toArray()
@@ -81,16 +84,17 @@ module.exports = function (app) {
       }
       data.updated_on = new Date()
       try {
-        const issue = await db.collection('issues').findAndUpdate(
+        await db.collection('issues').findOneAndUpdate(
           { 
-            _id: ObjectId(_id), project 
+            _id: ObjectID(_id) 
           },
-          data,
-          { returnNewDocument: true }
+          { $set: data },
         )
-        console.log(issue)
-        res.json(issue)
+        res
+          .type('text')
+          .send('successfully updated')
       } catch (err) {
+        console.log(err)
         res.status(400)
           .type('text')
           .send('fail');
